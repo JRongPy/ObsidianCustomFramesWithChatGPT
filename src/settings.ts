@@ -147,6 +147,101 @@ html > body > div:first-child > header:first-child > div > div:first-child > div
         "customCss": ".fixed-nav {\n    display: none !important;\n}",
         "customJs": ""
     },
+    "chatgpt": {
+        url: "https://chat.openai.com",
+        displayName: "ChatGPT",
+        icon: "aperture",
+        hideOnMobile: true,
+        addRibbonIcon: true,
+        openInCenter: false,
+        zoomLevel: 1,
+        forceIframe: false,
+        customCss: `
+            .copy-button {
+                position: absolute;
+                bottom: 8px;
+                right: 8px;
+                padding: 4px 8px;
+                background: rgba(0, 0, 0, 0.1);
+                border: 1px solid #ccc;
+                border-radius: 3px;
+                color: white;
+                cursor: pointer;
+                font-size: 12px;
+                transition: background-color 0.3s ease;
+            }
+            .copy-button:hover {
+                background: rgba(0, 0, 0, 0.2);
+            }
+            pre {
+                position: relative;
+            }
+            .save-button {
+                margin-top: 10px;
+                padding: 6px 12px;
+                background: #007bff;
+                border: none;
+                color: white;
+                border-radius: 4px;
+                font-size: 12px;
+                cursor: pointer;
+            }
+            .save-button:hover {
+                background: #0056b3;
+            }
+
+        `,
+        customJs: `
+                function addCopyButtons() {
+                    const codeBlocks = document.querySelectorAll('pre:not(.copy-button-added)');
+                    codeBlocks.forEach(block => {
+                        if (block.querySelector('code')) {
+                            const button = document.createElement('button');
+                            button.className = 'copy-button';
+                            button.textContent = 'Copy';
+
+                            button.onclick = function() {
+                                const code = block.querySelector('code').textContent;
+                                const textArea = document.createElement('textarea');
+                                textArea.value = code;
+                                document.body.appendChild(textArea);
+                                textArea.select();
+                                try {
+                                    document.execCommand('copy');
+                                    button.textContent = 'Copied!';
+                                } catch (err) {
+                                    console.error('Failed to copy:', err);
+                                    button.textContent = 'Failed!';
+                                }
+                                document.body.removeChild(textArea);
+                                setTimeout(() => {
+                                    button.textContent = 'Copy';
+                                }, 2000);
+                            };
+
+                            block.appendChild(button);
+                            block.classList.add('copy-button-added');
+                        }
+                    });
+                }
+
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        if (mutation.addedNodes && mutation.addedNodes.length > 0) {
+                            addCopyButtons();
+                        }
+                    });
+                });
+
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+
+                addCopyButtons();
+
+        `
+    },
 };
 
 export interface CustomFramesSettings {
