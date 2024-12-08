@@ -1,4 +1,4 @@
-import { Plugin, Platform, WorkspaceLeaf, Notice } from "obsidian";
+import { Plugin, Platform, WorkspaceLeaf, Notice, TFile} from "obsidian";
 import { CustomFrame } from "./frame";
 import { CustomFramesSettings, defaultSettings, getIcon, getId } from "./settings";
 import { CustomFramesSettingTab } from "./settings-tab";
@@ -10,6 +10,37 @@ export default class CustomFramesPlugin extends Plugin {
 
     async onload(): Promise<void> {
         await this.loadSettings();
+
+        // Set up IPC communication
+        if (Platform.isDesktopApp) {
+            try {
+                // 動態引入 electron
+                const electron = require('electron');
+                if (electron && electron.ipcMain) {
+                    electron.ipcMain.on('custom-frame-message', (event, message) => {
+                        try {
+                            if (message && message.action === 'save-content') {
+                                console.log(`Received content to save: ${message.filename}`);
+                                console.log(`Content length: ${message.content?.length || 0} characters`);
+                                
+                                // 這裡可以添加保存文件的邏輯
+                                new Notice(`Content received: ${message.filename}`);
+                            } else {
+                                console.log('Received unknown message format:', message);
+                            }
+                        } catch (error) {
+                            console.error('Error processing message:', error);
+                            new Notice('Error processing message');
+                        }
+                    });
+                    console.log('IPC communication set up successfully');
+                } else {
+                    console.log('electron.ipcMain not available');
+                }
+            } catch (error) {
+                console.log('Failed to set up IPC communication:', error);
+            }
+        }
 
         for (let frame of this.settings.frames) {
             if (!frame.url || !frame.displayName)
@@ -69,13 +100,7 @@ export default class CustomFramesPlugin extends Plugin {
 
             let frame = new CustomFrame(this.settings, data);
             frame.create(e, style, urlSuffix);
-        });
-
-        // Add global drag-and-drop functionality
-        this.enableGlobalDragAndDrop();
-
-        // Expose Save to Vault functionality to Webview
-        this.exposeSaveToVaultAPI();
+        });                            
     }
 
     async loadSettings() {
@@ -99,71 +124,5 @@ export default class CustomFramesPlugin extends Plugin {
         }
         if (leaf.view instanceof CustomFrameView)
             leaf.view.focus();
-    }
-
-    private enableGlobalDragAndDrop(): void {
-        const appContainer = document.body;
-    
-        appContainer.addEventListener("dragenter", (e) => {
-            e.preventDefault();
-            appContainer.classList.add("drag-over");
-        });
-    
-        appContainer.addEventListener("dragleave", (e) => {
-            e.preventDefault();
-            appContainer.classList.remove("drag-over");
-        });
-    
-        appContainer.addEventListener("dragover", (e) => {
-            e.preventDefault();
-        });
-    
-        appContainer.addEventListener("drop", async (e) => {
-            e.preventDefault();
-            appContainer.classList.remove("drag-over");
-    
-            const files = e.dataTransfer?.files;
-            if (files && files.length > 0) {
-                const file = files[0];
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    const fileContent = event.target?.result as string;
-                    console.log(`File dropped: "${file.name}"\nContent:\n${fileContent}`);
-    
-                    // Insert into GPT's contenteditable <div>
-                    const contentEditableDiv = document.querySelector("div#prompt-textarea.ProseMirror") as HTMLElement;
-                    if (contentEditableDiv) {
-                        contentEditableDiv.innerHTML = `File content from "${file.name}":<br><br>${fileContent.replace(/\n/g, "<br>")}`;
-                        contentEditableDiv.focus();
-                    } else {
-                        console.error("GPT input field (contenteditable div) not found!");
-                    }
-                };
-                reader.readAsText(file);
-            }
-        });
-    }
-    private exposeSaveToVaultAPI(): void {
-        const iframe = document.querySelector("iframe.custom-frames-frame") as HTMLIFrameElement; // 確保類型正確
-        if (iframe && iframe.contentWindow) {
-            (iframe.contentWindow as any).obsidian = {
-                saveToVault: this.saveToVault.bind(this), // 綁定 this 到 saveToVault 方法
-            };
-        }
-    }
-
-    async saveToVault(content: string): Promise<void> {
-        const folderPath = "chatGPT";
-        const fileName = `GPT-Response-${new Date().toISOString()}.md`;
-
-        const folder = this.app.vault.getAbstractFileByPath(folderPath);
-        if (!folder) {
-            await this.app.vault.createFolder(folderPath);
-        }
-
-        const filePath = `${folderPath}/${fileName}`;
-        await this.app.vault.create(filePath, content);
-
-        new Notice(`Saved to ${filePath}`);
     }
 }

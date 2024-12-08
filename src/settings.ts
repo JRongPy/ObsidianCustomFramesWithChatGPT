@@ -81,22 +81,22 @@ html > body > div:first-child > header:first-child > div > div:first-child > div
         zoomLevel: 1,
         forceIframe: false,
         customCss: `/* hide the help, home, search, and productivity overview buttons, create extra space, and prevent toast pop-up from acting weird */
-[aria-label="Go to Home view"], #quick_find, [aria-label="Productivity"], [aria-label="Help & Feedback"] {
-	display: none !important;
-}
+                    [aria-label="Go to Home view"], #quick_find, [aria-label="Productivity"], [aria-label="Help & Feedback"] {
+                        display: none !important;
+                    }
 
-.view_content {
-	padding-left: 15px;
-}
+                    .view_content {
+                        padding-left: 15px;
+                    }
 
-.view_header {
-	padding-left: 15px;
-	padding-top: 10px;
-}
+                    .view_header {
+                        padding-left: 15px;
+                        padding-top: 10px;
+                    }
 
-.undo_toast {
-	width: 95%;
-}`,
+                    .undo_toast {
+                        width: 95%;
+                    }`,
         customJs: ""
     },
     "notion": {
@@ -173,73 +173,104 @@ html > body > div:first-child > header:first-child > div > div:first-child > div
             .copy-button:hover {
                 background: rgba(0, 0, 0, 0.2);
             }
+            .save-button {
+                position: absolute;
+                bottom: 8px;
+                right: 8px;
+                padding: 4px 8px;
+                background: rgba(0, 0, 0, 0.1);
+                border: 1px solid #ccc;
+                border-radius: 3px;
+                color: white;
+                cursor: pointer;
+                font-size: 12px;
+                transition: background-color 0.3s ease;
+                z-index: 1000;
+            }
+            .save-button:hover {
+                background: rgba(0, 0, 0, 0.2);
+            }
+            .markdown {
+                position: relative;
+            }
             pre {
                 position: relative;
             }
-            .save-button {
-                margin-top: 10px;
-                padding: 6px 12px;
-                background: #007bff;
-                border: none;
-                color: white;
-                border-radius: 4px;
-                font-size: 12px;
-                cursor: pointer;
-            }
-            .save-button:hover {
-                background: #0056b3;
-            }
-
         `,
         customJs: `
-                function addCopyButtons() {
-                    const codeBlocks = document.querySelectorAll('pre:not(.copy-button-added)');
-                    codeBlocks.forEach(block => {
-                        if (block.querySelector('code')) {
-                            const button = document.createElement('button');
-                            button.className = 'copy-button';
-                            button.textContent = 'Copy';
-
-                            button.onclick = function() {
-                                const code = block.querySelector('code').textContent;
-                                const textArea = document.createElement('textarea');
-                                textArea.value = code;
-                                document.body.appendChild(textArea);
-                                textArea.select();
+                function addButtons() {
+                    // 定期檢查並添加按鈕
+                    setInterval(() => {
+                        const responses = document.querySelectorAll('.markdown:not(.has-save-button)');
+                        responses.forEach((response, index) => {
+                            response.classList.add('has-save-button');
+                            const saveButton = document.createElement('button');
+                            saveButton.className = 'save-button';
+                            saveButton.textContent = 'Save';
+                            
+                            saveButton.onclick = async () => {
+                                const content = response.textContent;
+                                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                                const filename = 'chatgpt-response-' + timestamp + '.md';
+                                
                                 try {
-                                    document.execCommand('copy');
-                                    button.textContent = 'Copied!';
-                                } catch (err) {
-                                    console.error('Failed to copy:', err);
-                                    button.textContent = 'Failed!';
+                                    console.log('Sending message via electronAPI...');
+                                    window.electronAPI.sendMessage('custom-frame-message', {
+                                        action: 'save-content',
+                                        filename: filename,
+                                        content: content
+                                    });
+                                    saveButton.textContent = 'Sent';
+                                    console.log('Message sent successfully');
+                                } catch (error) {
+                                    console.error('Failed to send message:', error);
+                                    saveButton.textContent = 'Error!';
                                 }
-                                document.body.removeChild(textArea);
+
                                 setTimeout(() => {
-                                    button.textContent = 'Copy';
+                                    saveButton.textContent = 'Save';
                                 }, 2000);
                             };
+                            
+                            response.appendChild(saveButton);
+                        });
 
-                            block.appendChild(button);
+                        // 處理程式碼區塊的複製按鈕
+                        const codeBlocks = document.querySelectorAll('pre:not(.copy-button-added)');
+                        codeBlocks.forEach(block => {
                             block.classList.add('copy-button-added');
-                        }
-                    });
+                            if (block.querySelector('code')) {
+                                const button = document.createElement('button');
+                                button.className = 'copy-button';
+                                button.textContent = 'Copy';
+                                button.onclick = function() {
+                                    const code = block.querySelector('code').textContent;
+                                    const textArea = document.createElement('textarea');
+                                    textArea.value = code;
+                                    document.body.appendChild(textArea);
+                                    textArea.select();
+                                    try {
+                                        document.execCommand('copy');
+                                        button.textContent = 'Copied!';
+                                        console.log('Copy successfully');
+                                    } catch (err) {
+                                        console.error('Failed to copy:', err);
+                                        button.textContent = 'Failed!';
+                                    }
+                                    document.body.removeChild(textArea);
+                                    setTimeout(() => {
+                                        button.textContent = 'Copy';
+                                    }, 2000);
+                                };
+
+                                block.appendChild(button);
+                            }
+                        });
+                    }, 1000);
                 }
 
-                const observer = new MutationObserver((mutations) => {
-                    mutations.forEach((mutation) => {
-                        if (mutation.addedNodes && mutation.addedNodes.length > 0) {
-                            addCopyButtons();
-                        }
-                    });
-                });
-
-                observer.observe(document.body, {
-                    childList: true,
-                    subtree: true
-                });
-
-                addCopyButtons();
-
+                // Add buttons when the page loads
+                addButtons();
         `
     },
 };

@@ -58,3 +58,26 @@ esbuild.build({
     treeShaking: true,
     outfile: 'main.js',
 }).catch(() => process.exit(1));
+
+// 編譯 preload.ts
+esbuild.build({
+    entryPoints: ['src/preload.ts'],
+    bundle: true,
+    platform: 'node',
+    target: 'node14',
+    outfile: 'main-preload.js',
+    external: ['electron'],
+    define: {
+        'process.env.NODE_ENV': JSON.stringify(prod ? 'production' : 'development')
+    },
+    minify: prod,
+    sourcemap: !prod,
+    plugins: [
+        copy({
+            assets: [{
+                from: ['./main-preload.js'],
+                to: ['./test-vault/.obsidian/plugins/obsidian-custom-frames/.']
+            }]
+        })
+    ]
+}).catch(() => process.exit(1));
