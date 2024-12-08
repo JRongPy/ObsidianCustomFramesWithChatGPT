@@ -214,14 +214,17 @@ html > body > div:first-child > header:first-child > div > div:first-child > div
                                 const filename = 'chatgpt-response-' + timestamp + '.md';
                                 
                                 try {
-                                    console.log('Sending message via electronAPI...');
-                                    window.electronAPI.sendMessage('custom-frame-message', {
+                                    console.log('Preparing to send message...');
+                                    const messageData = {
                                         action: 'save-content',
                                         filename: filename,
-                                        content: content
-                                    });
+                                        content: content,
+                                        timestamp: new Date().getTime()  // 添加時間戳以追蹤消息
+                                    };
+
+                                    window.postMessage(messageData, '*');
+                                    console.log('Message sent via window.postMessage');
                                     saveButton.textContent = 'Sent';
-                                    console.log('Message sent successfully');
                                 } catch (error) {
                                     console.error('Failed to send message:', error);
                                     saveButton.textContent = 'Error!';
@@ -269,7 +272,6 @@ html > body > div:first-child > header:first-child > div > div:first-child > div
                     }, 1000);
                 }
 
-                // Add buttons when the page loads
                 addButtons();
         `
     },

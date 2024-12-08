@@ -36,24 +36,8 @@ export class CustomFrame {
                 this.frame.setZoomFactor(this.data.zoomLevel);
                 this.frame.insertCSS(this.data.customCss);
                 this.frame.executeJavaScript(this.data.customJs);
-                
-                // 檢查 preload script 是否正確載入
-                this.frame.executeJavaScript(`
-                    console.log('Checking electronAPI availability:', window.electronAPI);
-                `);
             });
             
-            this.frame.addEventListener("ipc-message", (event: any) => {
-                console.log("Received IPC message:", event);
-                if (event.channel === 'custom-frame-message') {
-                    const message = event.args[0];
-                    if (message.action === 'save-content') {
-                        console.log(`Received content to save in frame: ${message.filename}`);
-                        new Notice(`Content received: ${message.filename}`);
-                    }
-                }
-            });
-
             this.frame.addEventListener("console-message", (event: any) => {
                 console.log('Webview console:', event.message);
             });

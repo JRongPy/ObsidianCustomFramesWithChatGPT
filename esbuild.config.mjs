@@ -59,12 +59,3 @@ esbuild.build({
     outfile: 'main.js',
 }).catch(() => process.exit(1));
 
-// 編譯 preload.ts
-esbuild.build({
-    entryPoints: ['src/preload.ts'],
-    bundle: true,
-    platform: 'node',
-    target: 'node14',
-    outfile: 'main-preload.js',
-    external: ['electron'],
-}).catch(() => process.exit(1));
