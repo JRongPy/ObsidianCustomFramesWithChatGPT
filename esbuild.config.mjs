@@ -67,17 +67,4 @@ esbuild.build({
     target: 'node14',
     outfile: 'main-preload.js',
     external: ['electron'],
-    define: {
-        'process.env.NODE_ENV': JSON.stringify(prod ? 'production' : 'development')
-    },
-    minify: prod,
-    sourcemap: !prod,
-    plugins: [
-        copy({
-            assets: [{
-                from: ['./main-preload.js'],
-                to: ['./test-vault/.obsidian/plugins/obsidian-custom-frames/.']
-            }]
-        })
-    ]
 }).catch(() => process.exit(1));

@@ -24,43 +24,23 @@ export class CustomFrame {
             this.frame = frameDoc.createElement("webview");
             
             // 設置 preload script
-            try {
-                const app = require('@electron/remote').app;
-                const path = require('path');
-                const preloadPath = path.join(app.getAppPath(), 'main-preload.js');
-                console.log('Setting preload script path:', preloadPath);
-                this.frame.setAttribute('preload', preloadPath);
-                this.frame.setAttribute('nodeintegration', 'true');
-                this.frame.setAttribute('webpreferences', 'contextIsolation=true');
-            } catch (error) {
-                console.error('Error setting preload script:', error);
-            }
-            
+            const preloadPath = require('path').join(__dirname, '../main-preload.js');
+            console.log('Setting preload script path:', preloadPath);
+            this.frame.setAttribute('preload', preloadPath);
             this.frame.setAttribute("allowpopups", "");
-            parent.appendChild(this.frame);
             
-            // 設置 URL
-            const targetUrl = urlSuffix ? this.data.url + urlSuffix : this.data.url;
-            this.frame.setAttribute("src", targetUrl);
+            parent.appendChild(this.frame);
             
             this.frame.addEventListener("dom-ready", () => {
                 console.log('Webview dom-ready event fired');
                 this.frame.setZoomFactor(this.data.zoomLevel);
                 this.frame.insertCSS(this.data.customCss);
+                this.frame.executeJavaScript(this.data.customJs);
                 
                 // 檢查 preload script 是否正確載入
                 this.frame.executeJavaScript(`
-                    console.log('Window object:', Object.keys(window));
                     console.log('Checking electronAPI availability:', window.electronAPI);
-                    if (!window.electronAPI) {
-                        console.error('electronAPI is not available in the webview');
-                    }
-                `).then(() => {
-                    console.log('Executed API check');
-                    this.frame.executeJavaScript(this.data.customJs);
-                }).catch(err => {
-                    console.error('Error executing API check:', err);
-                });
+                `);
             });
             
             this.frame.addEventListener("ipc-message", (event: any) => {
@@ -96,6 +76,13 @@ export class CustomFrame {
         this.frame.classList.add("custom-frames-frame");
         this.frame.classList.add(`custom-frames-${getId(this.data)}`);
         this.frame.setAttribute("style", style);
+        let src = this.data.url;
+        if (urlSuffix) {
+            if (!urlSuffix.startsWith("/"))
+                src += "/";
+            src += urlSuffix;
+        }
+        this.frame.setAttribute("src", src);
     }
 
     refresh(): void {
