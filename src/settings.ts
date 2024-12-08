@@ -198,6 +198,11 @@ html > body > div:first-child > header:first-child > div > div:first-child > div
             }
         `,
         customJs: `
+                // 添加消息接收監聽器
+                window.addEventListener('message', function(event) {
+                    console.log('Received message:', event.data);
+                });
+
                 function addButtons() {
                     // 定期檢查並添加按鈕
                     setInterval(() => {
@@ -273,6 +278,7 @@ html > body > div:first-child > header:first-child > div > div:first-child > div
                 }
 
                 addButtons();
+                
         `
     },
 };
