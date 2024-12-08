@@ -198,87 +198,91 @@ html > body > div:first-child > header:first-child > div > div:first-child > div
             }
         `,
         customJs: `
-                // 添加消息接收監聽器
-                window.addEventListener('message', function(event) {
-                    console.log('Received message:', event.data);
+        try {
+            const fs = require('fs');
+            const path = require('path');
+
+            function saveToFile(content) {
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const filename = 'chatgpt-response-'+ timestamp +'.md';
+                const savePath = path.join(__dirname, filename);
+
+                fs.writeFile(savePath, content, (err) => {
+                    if (err) {
+                        console.error('Error saving file:', err);
+                        alert('Failed to save the file.');
+                    } else {
+                        console.log('File saved successfully:', savePath);
+                    }
                 });
-
-                function addButtons() {
-                    // 定期檢查並添加按鈕
-                    setInterval(() => {
-                        const responses = document.querySelectorAll('.markdown:not(.has-save-button)');
-                        responses.forEach((response, index) => {
-                            response.classList.add('has-save-button');
-                            const saveButton = document.createElement('button');
-                            saveButton.className = 'save-button';
-                            saveButton.textContent = 'Save';
-                            
-                            saveButton.onclick = async () => {
-                                const content = response.textContent;
-                                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-                                const filename = 'chatgpt-response-' + timestamp + '.md';
-                                
-                                try {
-                                    console.log('Preparing to send message...');
-                                    const messageData = {
-                                        action: 'save-content',
-                                        filename: filename,
-                                        content: content,
-                                        timestamp: new Date().getTime()  // 添加時間戳以追蹤消息
-                                    };
-
-                                    window.postMessage(messageData, '*');
-                                    console.log('Message sent via window.postMessage');
-                                    saveButton.textContent = 'Sent';
-                                } catch (error) {
-                                    console.error('Failed to send message:', error);
-                                    saveButton.textContent = 'Error!';
-                                }
-
-                                setTimeout(() => {
-                                    saveButton.textContent = 'Save';
-                                }, 2000);
-                            };
-                            
-                            response.appendChild(saveButton);
-                        });
-
-                        // 處理程式碼區塊的複製按鈕
-                        const codeBlocks = document.querySelectorAll('pre:not(.copy-button-added)');
-                        codeBlocks.forEach(block => {
-                            block.classList.add('copy-button-added');
-                            if (block.querySelector('code')) {
-                                const button = document.createElement('button');
-                                button.className = 'copy-button';
-                                button.textContent = 'Copy';
-                                button.onclick = function() {
-                                    const code = block.querySelector('code').textContent;
-                                    const textArea = document.createElement('textarea');
-                                    textArea.value = code;
-                                    document.body.appendChild(textArea);
-                                    textArea.select();
-                                    try {
-                                        document.execCommand('copy');
-                                        button.textContent = 'Copied!';
-                                        console.log('Copy successfully');
-                                    } catch (err) {
-                                        console.error('Failed to copy:', err);
-                                        button.textContent = 'Failed!';
-                                    }
-                                    document.body.removeChild(textArea);
-                                    setTimeout(() => {
-                                        button.textContent = 'Copy';
-                                    }, 2000);
-                                };
-
-                                block.appendChild(button);
+            }
+        } catch (error) {
+            console.error('Error importing modules:', error);
+        }
+   
+            function createButton(text, className, onClick) {
+                const button = document.createElement('button');
+                button.textContent = text;
+                button.className = className;
+                button.onclick = onClick;
+                return button;
+            }
+        try {
+            function addSaveButtons() {
+                const responses = document.querySelectorAll('.markdown:not(.has-save-button)');
+                responses.forEach((response) => {
+                    response.classList.add('has-save-button');
+                    const saveButton = createButton('Save', 'save-button', () => {
+                        try {
+                            const content = response.textContent || '';
+                            saveToFile(content);
+                            saveButton.textContent = 'Saved!';
+                        } catch (error) {
+                            console.error('Error saving content:', error);
+                            saveButton.textContent = 'Error!';
+                        }
+                        setTimeout(() => (saveButton.textContent = 'Save'), 2000);
+                    });
+                    response.appendChild(saveButton);
+                });
+            }
+        } catch (error) {
+            console.error('Error adding save buttons:', error);
+        }
+            function addCopyButtons() {
+                const codeBlocks = document.querySelectorAll('pre:not(.copy-button-added)');
+                codeBlocks.forEach((block) => {
+                    block.classList.add('copy-button-added');
+                    if (block.querySelector('code')) {
+                        const copyButton = createButton('Copy', 'copy-button', () => {
+                            const code = block.querySelector('code').textContent;
+                            const textArea = document.createElement('textarea');
+                            textArea.value = code;
+                            document.body.appendChild(textArea);
+                            textArea.select();
+                            try {
+                                document.execCommand('copy');
+                                copyButton.textContent = 'Copied!';
+                            } catch (err) {
+                                console.error('Error copying code:', err);
+                                copyButton.textContent = 'Failed!';
                             }
+                            document.body.removeChild(textArea);
+                            setTimeout(() => (copyButton.textContent = 'Copy'), 2000);
                         });
-                    }, 1000);
-                }
+                        block.appendChild(copyButton);
+                    }
+                });
+            }
 
-                addButtons();
-                
+            function init() {
+                setInterval(() => {
+                    addSaveButtons();
+                    addCopyButtons();
+                }, 1000);
+            }
+
+            init();
         `
     },
 };

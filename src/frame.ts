@@ -1,7 +1,5 @@
 import { Platform, Notice } from "obsidian";
 import { CustomFrameSettings, CustomFramesSettings, getId } from "./settings";
-import { ipcMain } from "electron";
-
 export class CustomFrame {
     private readonly settings: CustomFramesSettings;
     private readonly data: CustomFrameSettings;
@@ -16,32 +14,22 @@ export class CustomFrame {
         let style = `padding: ${this.settings.padding}px;`;
         if (additionalStyle)
             style += additionalStyle;
-        console.log(`Creating frame for URL ${this.data.url} with style ${style}`);
+        console.log(`Creating frame for URL ${this.data.url} with style ${style}`); 
 
         if (Platform.isDesktopApp && !this.data.forceIframe) {
-            console.log('Creating webview - Branch 1');
+            console.log('Creating webview');
             let frameDoc = parent.doc;
             this.frame = frameDoc.createElement("webview");
-            
-            // 設置 preload script
-            const preloadPath = require('path').join(__dirname, '../main-preload.js');
-            console.log('Setting preload script path:', preloadPath);
-            this.frame.setAttribute('preload', preloadPath);
-            this.frame.setAttribute("allowpopups", "");
-            
             parent.appendChild(this.frame);
-            
+            this.frame.setAttribute("allowpopups", "");            
             this.frame.addEventListener("dom-ready", () => {
-                console.log('Webview dom-ready event fired');
                 this.frame.setZoomFactor(this.data.zoomLevel);
                 this.frame.insertCSS(this.data.customCss);
                 this.frame.executeJavaScript(this.data.customJs);
             });
-            
             this.frame.addEventListener("console-message", (event: any) => {
                 console.log('Webview console:', event.message);
             });
-
             this.frame.addEventListener("destroyed", () => {
                 console.log('Webview destroyed event fired');
                 if (frameDoc != parent.doc) {
@@ -50,13 +38,12 @@ export class CustomFrame {
                 }
             });
         } else {
-            console.log('Creating iframe - Branch 2');
+            console.log('Creating iframe');
             this.frame = parent.ownerDocument.createElement("iframe");
             parent.appendChild(this.frame);
             this.frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox");
             style += `transform: scale(${this.data.zoomLevel}); transform-origin: 0 0;`;
         }
-
         this.frame.classList.add("custom-frames-frame");
         this.frame.classList.add(`custom-frames-${getId(this.data)}`);
         this.frame.setAttribute("style", style);
