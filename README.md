@@ -1,4 +1,4 @@
-# Obsidian Custom Frames
+# Obsidian Custom Frames with ChatGPT 
 An Obsidian plugin that turns web apps into panes using iframes with custom styling. Also comes with presets for Google Keep, Todoist and more.
 
 ![A screenshot of the plugin in action, where you can see Google Keep attached as a narrow side pane on the right](https://raw.githubusercontent.com/Ellpeck/ObsidianCustomFrames/master/screenshot.png)
@@ -52,21 +52,6 @@ By default, Custom Frames comes with a few presets that allow you to get new pan
 - [Readwise Daily Review](https://readwise.io/dailyreview)
 
 If you create a frame that you think other people would like, don't hesitate to create a pull request with [a new preset](https://github.com/Ellpeck/ObsidianCustomFrames/blob/master/src/settings.ts#L5).
-
-## 🛣️ Roadmap
-- ~~Allow setting a custom icon for each pane~~
-- ~~Allow displaying custom frames in Markdown code blocks~~
-- ~~Add the ability to add a ribbon button for a frame that opens it in the main view~~
-- Allow creating links outside of Obsidian that open in a custom frame
-- Possibly allow executing custom JavaScript in iframes (though security implications still need to be explored)
-- Add a global setting that causes popups to be opened in a new Obsidian window rather than the default browser
-- Add more options to Markdown mode, like allowing for back and forward buttons
-- Possibly allow extracting selected text into a note similar to how the Note composer plugin works, and potentially allow using a note template that includes the link to the site extracted from
-
-## ⚠️ Known Issues
-There are a few known issues with Custom Frames. If you encounter any of these, please **don't** report it on the issue tracker.
-- Popups and new tabs are currently opened in the default browser rather than the custom frame. You can find more info, including workarounds for logging in to certain sites, in [this issue](https://github.com/Ellpeck/ObsidianCustomFrames/issues/40).
-- Some links refuse to open from within custom frames, especially before Obsidian 1.3.7. You can find more info in [this issue](https://github.com/Ellpeck/ObsidianCustomFrames/issues/76).
 
 ## 🙏 Acknowledgements
 Thanks to [lishid](https://github.com/lishid) for their help with making iframes work in Obsidian for a purpose like this. Also thanks to them for *motivating* me to turn Obsidian Keep into a more versatile plugin, which is how Custom Frames was born.
