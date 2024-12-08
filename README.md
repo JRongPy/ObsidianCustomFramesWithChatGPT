@@ -3,9 +3,10 @@ An Obsidian plugin that turns web apps into panes using iframes with custom styl
 
 ![A screenshot of the plugin in action, where you can see Google Keep attached as a narrow side pane on the right](https://raw.githubusercontent.com/Ellpeck/ObsidianCustomFrames/master/screenshot.png)
 
-![A screenshot of the plugin in action, where you can see Google Calendar opened in the center, and the mouse hovering over the corresponding ribbon button](https://raw.githubusercontent.com/Ellpeck/ObsidianCustomFrames/master/screenshot-big.png)
+![{D28EEFB8-59EE-4AA2-A658-5716B7FE6A5C}](https://github.com/user-attachments/assets/749abf1f-5646-49e0-aea1-1da4e9a81874)
 
 ![A screenshot of the plugin's settings](https://raw.githubusercontent.com/Ellpeck/ObsidianCustomFrames/master/settings.png)
+
 
 ## 🤔 Usage
 To use this plugin, simply go into its settings and add a new frame, either from a preset shipped with the plugin, or a custom one that you can edit yourself.
