@@ -198,28 +198,19 @@ html > body > div:first-child > header:first-child > div > div:first-child > div
             }
         `,
         customJs: `
-        try {
-            const fs = require('fs');
-            const path = require('path');
-
             function saveToFile(content) {
                 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-                const filename = 'chatgpt-response-'+ timestamp +'.md';
-                const savePath = path.join(__dirname, filename);
-
-                fs.writeFile(savePath, content, (err) => {
-                    if (err) {
-                        console.error('Error saving file:', err);
-                        alert('Failed to save the file.');
-                    } else {
-                        console.log('File saved successfully:', savePath);
-                    }
-                });
+                const filename = 'chatgpt-response-' + timestamp + '.md';
+                const blob = new Blob([content], { type: 'text/markdown' }); // 建立 Blob 對象
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); // 建立標籤
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a); // 附加到 DOM
+                a.click(); // 觸發點擊
+                document.body.removeChild(a); // 移除標籤
+                URL.revokeObjectURL(url); // 釋放 Blob URL 資源
             }
-        } catch (error) {
-            console.error('Error importing modules:', error);
-        }
-   
             function createButton(text, className, onClick) {
                 const button = document.createElement('button');
                 button.textContent = text;
@@ -227,7 +218,6 @@ html > body > div:first-child > header:first-child > div > div:first-child > div
                 button.onclick = onClick;
                 return button;
             }
-        try {
             function addSaveButtons() {
                 const responses = document.querySelectorAll('.markdown:not(.has-save-button)');
                 responses.forEach((response) => {
@@ -246,9 +236,6 @@ html > body > div:first-child > header:first-child > div > div:first-child > div
                     response.appendChild(saveButton);
                 });
             }
-        } catch (error) {
-            console.error('Error adding save buttons:', error);
-        }
             function addCopyButtons() {
                 const codeBlocks = document.querySelectorAll('pre:not(.copy-button-added)');
                 codeBlocks.forEach((block) => {
@@ -274,14 +261,12 @@ html > body > div:first-child > header:first-child > div > div:first-child > div
                     }
                 });
             }
-
             function init() {
                 setInterval(() => {
                     addSaveButtons();
                     addCopyButtons();
                 }, 1000);
             }
-
             init();
         `
     },
